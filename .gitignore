@@ -1,22 +1,3 @@
-# Environment variables
-.env
-
-# Dependencies
-node_modules/
-
-# Uploaded files
-uploads/
-
-# Logs
-*.log
-
-# OS files
-.DS_Store
-
-# IDE files
-.vscode/
-.idea/
-
 # Logs
 logs
 *.log
