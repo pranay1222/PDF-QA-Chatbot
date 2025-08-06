@@ -1,10 +1,14 @@
 # PDF QA Chatbot
-
-[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
+https://pdf-qa-chatbot-x020.onrender.com/
 
 An AI-powered system that answers questions about your PDF documents using Google Gemini and Pinecone.
 
-![Demo Screenshot](/screenshot.png) <!-- Add screenshot later -->
+screenshots:
+
+<img width="1250" height="901" alt="Screenshot (308)" src="https://github.com/user-attachments/assets/87a5b53f-ae45-472a-8559-3b2decc87159" />
+<img width="1280" height="916" alt="Screenshot (309)" src="https://github.com/user-attachments/assets/a295a145-c0e6-4866-b31f-f38c6790bfb3" />
+<img width="1229" height="906" alt="Screenshot (310)" src="https://github.com/user-attachments/assets/d546a28d-ccb5-4a78-bcbf-0fa231927a63" />
+
 
 ## Features
 - PDF upload with drag & drop
