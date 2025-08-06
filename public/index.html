@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF QA Chatbot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #f8f9fa;
+            --text: #333;
+            --text-light: #6c757d;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --border: #e0e0e0;
+            --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fb;
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .app-container {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .history-panel {
+            width: 300px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            padding: 20px;
+            height: fit-content;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: var(--card-shadow);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card-header h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Upload section */
+        .upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: #fcfdff;
+        }
+
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.03);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            margin-bottom: 20px;
+        }
+
+        .upload-text h3 {
+            font-size: 1.3rem;
+            margin-bottom: 8px;
+        }
+
+        .upload-text p {
+            color: var(--text-light);
+            font-size: 0.95rem;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background: rgba(67, 97, 238, 0.1);
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9ff;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .file-icon {
+            font-size: 24px;
+            color: var(--primary);
+        }
+
+        .file-details {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            margin-bottom: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 300px;
+        }
+
+        .file-size {
+            color: var(--text-light);
+            font-size: 0.85rem;
+        }
+
+        /* Chat section */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: var(--primary);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+
+        .bot-message {
+            background: var(--secondary);
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+
+        .not-found-message {
+            background: #ffeeee;
+            border: 1px solid #ffcccc;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            background: white;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .chat-input input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .send-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            background: #b0b0b0;
+            cursor: not-allowed;
+        }
+
+        /* History panel */
+        .history-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .history-item {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .history-item:hover {
+            background: rgba(67, 97, 238, 0.08);
+        }
+
+        .history-item i {
+            color: var(--primary);
+        }
+
+        /* Status indicators */
+        .status {
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-uploading {
+            background: rgba(243, 156, 18, 0.1);
+            color: var(--warning);
+        }
+
+        .status-success {
+            background: rgba(46, 204, 113, 0.1);
+            color: var(--success);
+        }
+
+        .status-error {
+            background: rgba(231, 76, 60, 0.1);
+            color: var(--danger);
+        }
+
+        .status-thinking {
+            background: rgba(67, 97, 238, 0.1);
+            color: var(--primary);
+        }
+
+        .loader {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: currentColor;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        /* Debug panel */
+        .debug-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .debug-panel h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .debug-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            margin-top: 15px;
+            cursor: pointer;
+        }
+
+        .debug-content {
+            font-family: monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        /* Responsive design */
+        @media (max-width: 900px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .history-panel {
+                width: 100%;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chat-container {
+                height: 400px;
+            }
+            
+            .btn {
+                padding: 10px 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PDF QA Chatbot</h1>
+            <p class="subtitle">Upload your PDF document and ask questions about its content</p>
+        </header>
+
+        <div class="app-container">
+            <div class="main-content">
+                <!-- Upload Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-file-upload"></i>
+                        <h2>Upload PDF Document</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="upload-area" id="uploadArea">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="upload-text">
+                                <h3>Drag & Drop your PDF file</h3>
+                                <p>or click to browse files</p>
+                            </div>
+                            <button class="btn" id="browseBtn">
+                                <i class="fas fa-folder-open"></i> Browse Files
+                            </button>
+                            <input type="file" id="fileInput" class="file-input" accept=".pdf">
+                        </div>
+                        
+                        <div id="fileInfo" class="file-info" style="display: none;">
+                            <i class="fas fa-file-pdf file-icon"></i>
+                            <div class="file-details">
+                                <div class="file-name" id="fileName">document.pdf</div>
+                                <div class="file-size" id="fileSize">2.4 MB</div>
+                            </div>
+                            <button class="btn btn-outline" id="changeFileBtn">
+                                <i class="fas fa-sync"></i> Change
+                            </button>
+                        </div>
+                        
+                        <div id="uploadStatus"></div>
+                    </div>
+                </div>
+
+                <!-- Chat Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-comments"></i>
+                        <h2>Chat with your PDF</h2>
+                    </div>
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="empty-state">
+                                <i class="fas fa-comment-dots"></i>
+                                <h3>No conversation yet</h3>
+                                <p>Upload a PDF and ask your first question</p>
+                            </div>
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" id="questionInput" placeholder="Ask a question about the PDF..." disabled>
+                            <button class="send-btn" id="sendBtn" disabled>
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History Panel -->
+            <div class="history-panel">
+                <div class="card-header">
+                    <i class="fas fa-history"></i>
+                    <h2>Question History</h2>
+                </div>
+                <div class="card-body">
+                    <ul class="history-list" id="historyList">
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <p>No questions asked yet</p>
+                        </div>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Debug Panel -->
+        <div class="debug-panel" id="debugPanel">
+            <h3>Debug Information</h3>
+            <div class="debug-content" id="debugContent"></div>
+            <div class="debug-toggle" id="debugToggle">
+                <i class="fas fa-bug"></i>
+                <span>Hide Debug Info</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const browseBtn = document.getElementById('browseBtn');
+        const changeFileBtn = document.getElementById('changeFileBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadStatus = document.getElementById('uploadStatus');
+        const chatMessages = document.getElementById('chatMessages');
+        const questionInput = document.getElementById('questionInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const historyList = document.getElementById('historyList');
+        const debugPanel = document.getElementById('debugPanel');
+        const debugContent = document.getElementById('debugContent');
+        const debugToggle = document.getElementById('debugToggle');
+
+        // State
+        let currentFile = null;
+        let sessionId = null;
+        let debugMode = false;
+        
+        // Event Listeners
+        browseBtn.addEventListener('click', () => fileInput.click());
+        changeFileBtn.addEventListener('click', () => fileInput.click());
+        
+        fileInput.addEventListener('change', handleFileSelect);
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        uploadArea.addEventListener('drop', handleDrop);
+        sendBtn.addEventListener('click', sendQuestion);
+        questionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !sendBtn.disabled) {
+                sendQuestion();
+            }
+        });
+        debugToggle.addEventListener('click', toggleDebugMode);
+
+        // Initialize debug mode from localStorage
+        const savedDebugMode = localStorage.getItem('debugMode');
+        if (savedDebugMode === 'true') {
+            debugMode = true;
+            debugPanel.style.display = 'block';
+            debugToggle.innerHTML = '<i class="fas fa-bug"></i> <span>Hide Debug Info</span>';
+        }
+
+        // Functions
+        function handleFileSelect(e) {
+            const file = e.target.files[0] || (e.dataTransfer && e.dataTransfer.files[0]);
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('drag-over');
+        }
+
+        function handleDragLeave() {
+            uploadArea.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('drag-over');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type === 'application/pdf') {
+                processFile(file);
+            } else {
+                showStatus('Please drop a PDF file only', 'error');
+            }
+        }
+
+        function toggleDebugMode() {
+            debugMode = !debugMode;
+            debugPanel.style.display = debugMode ? 'block' : 'none';
+            debugToggle.innerHTML = debugMode ? 
+                '<i class="fas fa-bug"></i> <span>Hide Debug Info</span>' : 
+                '<i class="fas fa-bug"></i> <span>Show Debug Info</span>';
+            
+            localStorage.setItem('debugMode', debugMode);
+        }
+
+        function addDebugInfo(message) {
+            if (!debugMode) return;
+            
+            const timestamp = new Date().toLocaleTimeString();
+            debugContent.textContent += `[${timestamp}] ${message}\n`;
+            debugContent.scrollTop = debugContent.scrollHeight;
+        }
+
+        function processFile(file) {
+            if (file.type !== 'application/pdf') {
+                showStatus('Please select a PDF file', 'error');
+                return;
+            }
+
+            // Clear previous session
+            if (sessionId) {
+                chatMessages.innerHTML = '<div class="empty-state"><i class="fas fa-comment-dots"></i><h3>New conversation started</h3><p>Processing your new PDF document</p></div>';
+                historyList.innerHTML = '<div class="empty-state"><i class="fas fa-history"></i><p>No questions asked yet</p></div>';
+                sessionId = null;
+            }
+
+            currentFile = file;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'flex';
+            
+            uploadFile(file);
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]);
+        }
+
+        async function uploadFile(file) {
+            showStatus('Uploading and processing PDF...', 'uploading');
+            addDebugInfo('Starting PDF upload...');
+            
+            const formData = new FormData();
+            formData.append('pdf', file);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    showStatus('PDF processed successfully!', 'success');
+                    sessionId = data.sessionId;
+                    enableChat();
+                    addBotMessage("Hello! I'm ready to answer your questions about the uploaded PDF. What would you like to know?");
+                    addDebugInfo(`PDF processed successfully. Session ID: ${sessionId}`);
+                } else {
+                    showStatus(`Upload failed: ${data.error || 'Unknown error'}`, 'error');
+                    addDebugInfo(`Upload failed: ${data.error || 'Unknown error'}`);
+                }
+            } catch (error) {
+                showStatus(`Upload error: ${error.message}`, 'error');
+                addDebugInfo(`Upload error: ${error.message}`);
+            }
+        }
+
+        function showStatus(message, type) {
+            uploadStatus.innerHTML = '';
+            
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status status-${type}`;
+            
+            if (type === 'uploading' || type === 'thinking') {
+                statusDiv.innerHTML = `
+                    <div class="loader"></div>
+                    <span>${message}</span>
+                `;
+            } else {
+                const icon = type === 'success' ? 'fa-check-circle' : 
+                            type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+                statusDiv.innerHTML = `
+                    <i class="fas ${icon}"></i>
+                    <span>${message}</span>
+                `;
+            }
+            
+            uploadStatus.appendChild(statusDiv);
+        }
+
+        function enableChat() {
+            questionInput.disabled = false;
+            sendBtn.disabled = false;
+            questionInput.focus();
+        }
+
+        function addBotMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message bot-message';
+            
+            // Add special class for "not found" messages
+            if (message.includes("couldn't find")) {
+                messageDiv.classList.add('not-found-message');
+            }
+            
+            messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+                <div class="message-time">${formatTime(new Date())}</div>
+            `;
+            
+            // Remove empty state if it exists
+            const emptyState = chatMessages.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addUserMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.innerHTML = `
+                <div class="message-content">${message}</div>
+                <div class="message-time">${formatTime(new Date())}</div>
+            `;
+            
+            // Remove empty state if it exists
+            const emptyState = chatMessages.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function addToHistory(question) {
+            // Remove empty state if it exists
+            const emptyState = historyList.querySelector('.empty-state');
+            if (emptyState) emptyState.remove();
+            
+            const historyItem = document.createElement('li');
+            historyItem.className = 'history-item';
+            historyItem.innerHTML = `
+                <i class="fas fa-question-circle"></i>
+                <span>${question}</span>
+            `;
+            
+            // Add click handler to load history question
+            historyItem.addEventListener('click', () => {
+                questionInput.value = question;
+                sendQuestion();
+            });
+            
+            historyList.prepend(historyItem);
+        }
+
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function sendQuestion() {
+    const question = questionInput.value.trim();
+    if (!question || !sessionId) return;
+    
+    // Add user message to chat
+    addUserMessage(question);
+    addToHistory(question);
+    addDebugInfo(`Sending question: "${question}"`);
+    
+    // Clear input and disable during processing
+    questionInput.value = '';
+    questionInput.disabled = true;
+    sendBtn.disabled = true;
+    
+    // Show thinking status
+    const thinkingDiv = document.createElement('div');
+    thinkingDiv.className = 'status status-thinking';
+    thinkingDiv.innerHTML = `
+      <div class="loader"></div>
+      <span>Processing your question...</span>
+    `;
+    chatMessages.appendChild(thinkingDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    
+    try {
+      const response = await fetch('/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          question: question,
+          sessionId: sessionId
+        })
+      });
+      
+      const data = await response.json();
+      
+      // Remove thinking indicator
+      chatMessages.removeChild(thinkingDiv);
+      
+      if (response.ok) {
+        addDebugInfo(`Received answer: ${data.answer.substring(0, 100)}...`);
+        addBotMessage(data.answer);
+      } else {
+        addDebugInfo(`Error: ${data.error || 'Unknown error'}`);
+        if (data.error && data.error.includes('Invalid session ID')) {
+          showStatus('Session expired. Please upload your PDF again.', 'error');
+          questionInput.disabled = true;
+          sendBtn.disabled = true;
+          addBotMessage("Your session has expired. Please upload the PDF again to continue.");
+        } else {
+          addBotMessage("Sorry, I couldn't process your question. Please try again.");
+        }
+      }
+    } catch (error) {
+      chatMessages.removeChild(thinkingDiv);
+      addDebugInfo(`Network error: ${error.message}`);
+      addBotMessage("Sorry, I'm having trouble connecting to the server.");
+      console.error('Error:', error);
+    }
+    
+    // Re-enable input
+    questionInput.disabled = false;
+    sendBtn.disabled = false;
+    questionInput.focus();
+  }
+    </script>
+</body>
+</html>
