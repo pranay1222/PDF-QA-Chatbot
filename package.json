@@ -13,12 +13,13 @@
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@langchain/community": "^0.3.49",
-    "@langchain/core": "^0.3.66",
-    "@langchain/google-genai": "^0.2.16",
+    "@langchain/core": "^1.2.12",
+    "@langchain/google-genai": "^2.3.2",
     "@langchain/pinecone": "^0.2.0",
+    "@langchain/textsplitters": "^1.0.1",
     "@pinecone-database/pinecone": "^5.1.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
+    "dotenv": "^16.6.1",
     "express": "^5.1.0",
     "multer": "^2.0.2",
     "pdf-parse": "^1.1.1"
